@@ -1,0 +1,10 @@
+Package: HighlyRegionalGenes
+Type: Package
+Title: Tools to identify features for downstream analysis.
+Version: 0.1.0
+Author: wyh
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: A toolkit to identify genes that are highly regionally distributed.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
