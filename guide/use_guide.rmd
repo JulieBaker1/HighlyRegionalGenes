@@ -1,0 +1,64 @@
+---
+title: "HighlyRegionalGenes - Guided Tutorial"
+output: html_document
+---
+
+The code below can be obtained from [HighlyRegionalGenes](https://github.com/JulieBaker1/HighlyRegionalGenes).The method can be recognize as a alternative for the **HighlyVarationalgene()** feature-selection method in Seurat.
+
+
+```{r global_options, include=FALSE}
+knitr::opts_knit$set(warning=FALSE,root.dir = 'D:/postgraduate/feature-selection/data/output',verbose = FALSE)
+```
+## Installation
+the package can be installed directly from the github.
+```{r eval=FALSE}
+install.packages("devtools")
+library(devtools)
+install_github("JulieBaker1/HighlyRegionalGenes")
+```
+
+## step1:Load library
+```{r warning=FALSE}
+library(Seurat)
+library(HighlyRegionalGenes)
+```
+
+## step2:Run pca
+Our idea is based on the cell neighborhood relationship. If an neighborhood relationship can't be obtained in advance, we should first run PCA used to construct neighborhood relationship(SNN in our method), otherwise, this step can be ignored.Notably, besides all the genes to run PCA, the genes find by Seurat's HighlyVariablegenes() function or genes you think are benifit to construct neighborhood relationship is also recommended.
+```{r warning=FALSE,verbose=FALSE}
+pbmc=readRDS("pbmc.rds")
+all.genes=rownames(pbmc)
+pbmc=ScaleData(pbmc,features=all.genes,verbose = FALSE)
+pbmc=RunPCA(pbmc,features=all.genes,verbose = FALSE)
+ElbowPlot(pbmc)
+```
+
+## step3: Identification of highly regional features
+
+To confirm our neighborhood relationship is accurate, we use newly-find features to construct SNN again and again until the overlap between the newly-find features and the last features comes to overlap_stop, 0.75 by default. If you pursue efficiency and don't want the iteration, just set overlap_stop 0. You can find specific details [here]().
+
+the parameter that user can define.
+
+* an Seurat object
+* dims:the dimentions of PCA  used to construct SNN.(10 by default)
+* nfeatures:the number of features for downstream analysis.(2000 by default)
+* overlap_stop:when the overlap come to this number, iterate will stop.(0.75 by default)
+* snn:the neighborhood relationship that is calculated in advance.
+
+example:
+```{r}
+pbmc=FindRegionalGenes(pbmc,dims = 1:10,nfeatures = 2000,overlap_stop = 0.99)
+# Identify the 10 most highly regional genes
+top10 <- head(VariableFeatures(pbmc), 10)
+# the featureplot of the 2 most highly regional genes
+FeaturePlot(pbmc,head(VariableFeatures(pbmc), 2))
+```
+
+
+
+
+
+
+
+
+
