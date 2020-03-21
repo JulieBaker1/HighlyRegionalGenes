@@ -10,17 +10,17 @@
 
 
 
-FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold){
+FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold,verbose=TRUE){
 
 
   all.genes=rownames(obj)
   cell_num=dim(obj)[2]
-  obj=ScaleData(obj,features = all.genes)
+  obj=ScaleData(obj,features = all.genes,verbose=FALSE)
   obj_data <- GetAssayData(object = obj,slot="scale.data")  #scale_data
 
   if(is.null(snn)){
 
-    obj <- FindNeighbors(obj, dims =dims)
+    obj <- FindNeighbors(obj, dims =dims,verbose=FALSE)
 
     snn <- obj$RNA_snn
 
@@ -36,11 +36,12 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
 
 
     overlap=0
-
+    gp <- ggplot()+geom_hline(yintercept=overlap_stop,  color = "red")+ylim(0,1)+scale_x_continuous(breaks=c(1:20))
+    count <- 1
     while(overlap<overlap_stop){
 
-      obj=RunPCA(obj,features = feature_gene)
-      obj <- FindNeighbors(obj, dims =dims)
+      obj=RunPCA(obj,features = feature_gene,verbose=FALSE)
+      obj <- FindNeighbors(obj, dims =dims,verbose=FALSE)
       snn <- obj$RNA_snn
       diag(snn) <- 0
 
@@ -50,7 +51,13 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
       }
       feature_gene_new=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
       overlap=length(intersect(feature_gene_new,feature_gene))/nfeatures
-      print(overlap)
+
+      if(verbose){
+        print(overlap)
+        gp <- gp + geom_point(data = data.frame(time=count,overlap=overlap) , aes(x=time , y=overlap))
+        count=count+1
+        print(gp)
+      }
 
       feature_gene=feature_gene_new
     }
