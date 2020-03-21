@@ -4,6 +4,7 @@
 #'@param nfeatures the number of features for downstream analysis
 #'@param overlap_stop when the overlap come to this number, iterate will stop.
 #'@param snn the neighborhood relationship that is calculated in advance.
+#'@param verbose to choose if show the iteration process plot.
 #'@details the user should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
 #'
 #'
