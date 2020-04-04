@@ -211,83 +211,44 @@ HighlyVarationalgene <-function(counts){
 
 
 
-#'@export
-Consensus_FS_new <- function(counts, norm=NA, is.spike=rep(FALSE, times=nrow(counts)), pcs=c(2,3)) {
-  # Check input
-  #if (!is.matrix(counts)) {
-  #	counts <- as.matrix(counts);
-  #}
-
+#' @export
+Consensus_FS_new_norm <- function(norm=NA, is.spike=rep(FALSE, times=nrow(counts)), pcs=c(2,3)) {
 
   compute_time=list()
-  if (sum(dim(counts) != dim(norm)) > 0) {
-    if (is.null(dim(norm))) {
-      if (length(norm) < ncol(counts)) {
-        # apply CPM
-        sf <- Matrix::colSums(counts[!is.spike,])
-      } else {
-        sf <- norm
-      }
-      norm <- t(t(counts)/sf*median(sf));
-    } else {
-      stop("Error: counts and norm matrices must be of the same dimension");
-    }
-  }
-  if (ncol(counts) < 1000) {
-    row_vars <- (rowMeans(counts^2)-rowMeans(counts)^2);
-  } else {
-    row_vars <- Matrix::rowSums(counts);
-  }
-  invariant <- row_vars == 0;
-  counts <- counts[!invariant,]
-  norm <- norm[!invariant,]
-  # apply FS methods
-  # DANB
-  compute_time[[1]]=system.time(
-    {
-      fit <- NBumiFitModel(counts)
-      DANB <- NBumiFeatureSelectionCombinedDrop(fit)
-    }
-  )
-  compute_time[[2]]=system.time(
-    {
-      fit2 <- NBumiFitModel(counts)
-      DANB_var <- NBumiFeatureSelectionHighVar(fit2)
-    }
-  )
-
-
-
-
+  # if (sum(dim(counts) != dim(norm)) > 0) {
+  #   if (is.null(dim(norm))) {
+  #     if (length(norm) < ncol(counts)) {
+  #       # apply CPM
+  #       sf <- Matrix::colSums(counts[!is.spike,])
+  #     } else {
+  #       sf <- norm
+  #     }
+  #     norm <- t(t(counts)/sf*median(sf));
+  #   } else {
+  #     stop("Error: counts and norm matrices must be of the same dimension");
+  #   }
+  # }
+  # if (ncol(counts) < 1000) {
+  #   row_vars <- (rowMeans(counts^2)-rowMeans(counts)^2);
+  # } else {
+  #   row_vars <- Matrix::rowSums(counts);
+  # }
+  # invariant <- row_vars == 0;
+  # counts <- counts[!invariant,]
+  # norm <- norm[!invariant,]
+  # # apply FS methods
 
 
   # M3Drop
-  compute_time[[3]]=system.time(
+  compute_time[[1]]=system.time(
     {
       m3drop <- M3DropFeatureSelection(norm, mt_method="fdr", mt_threshold=2, suppress.plot=TRUE)
     }
   )
 
 
-
-
-
-  # HVG
-  compute_time[[4]]=system.time(
-    {
-      # if (sum(is.spike == TRUE) > 10) {
-      #   spikes <- rownames(norm)[is.spike]
-      #   HVG <- BrenneckeGetVariableGenes(norm, spikes=spikes, fdr=2, suppress.plot=TRUE)
-      # } else {
-      #   warning("Warning: insufficient spike-ins using all genes for HVG");
-      #   HVG <- BrenneckeGetVariableGenes(norm, fdr=2, suppress.plot=TRUE)
-      # }
-      HVG=HighlyVarationalgene(counts)
-    }
-  )
-
   # pca
-  compute_time[[5]]=system.time(
+  compute_time[[2]]=system.time(
     {
       pca_fs <- irlbaPcaFS(norm, pcs=pcs)
     }
@@ -295,7 +256,7 @@ Consensus_FS_new <- function(counts, norm=NA, is.spike=rep(FALSE, times=nrow(cou
 
 
   #HRG
-  compute_time[[6]]=system.time(
+  compute_time[[3]]=system.time(
     {
       HRG=HRGFS(norm)
     }
@@ -305,12 +266,12 @@ Consensus_FS_new <- function(counts, norm=NA, is.spike=rep(FALSE, times=nrow(cou
 
 
   # Gini
-  compute_time[[7]]=system.time(
+  compute_time[[4]]=system.time(
     {
       gini <- giniFS(norm)
     }
   )
-  method_names= c("NBDrop", "NBDisp", "M3Drop", "HVG", "PCA","HRG","Gini")
+  method_names= c("M3Drop", "PCA","HRG","Gini")
 
   names(compute_time)=method_names
 
@@ -320,19 +281,13 @@ Consensus_FS_new <- function(counts, norm=NA, is.spike=rep(FALSE, times=nrow(cou
 
   # sort by mean_rank of each gene.
   ranks <- 1:nrow(norm);
-  ref_order <- rownames(counts);
+  ref_order <- rownames(norm);
   out_table <- data.frame(
-    NBDrop = ranks[match(ref_order, DANB$Gene)],
-    NBDisp = ranks[match(ref_order, names(DANB_var))],
     M3Drop = ranks[match(ref_order, m3drop$Gene)],
-    HVG = ranks[match(ref_order, HVG)],
     PCA = ranks[match(ref_order, names(pca_fs))],
     HRG = ranks[match(ref_order, HRG)],
     Gini = ranks[match(ref_order, names(gini))]
   )
-  # if (!include_cors) {
-  #   out_table$Cor <- rep(-1, times=nrow(out_table));
-  # }
   rownames(out_table) <- ref_order;
   consensus_score <- rowMeans(out_table, na.rm=TRUE);
   out_table <- out_table[order(consensus_score),]

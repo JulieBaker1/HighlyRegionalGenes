@@ -1,7 +1,7 @@
 
-
-
-#' @inheritParams ARI
+#' @export
+#' @name ARI
+#' @title ARI
 #' @param object an Seurat object that contains cluster result and the inherent category
 #'
 #' @param name the colname that contains the genes' inherent category of the cell metadata
@@ -58,8 +58,9 @@ ARI <- function(object,name){
   print(ARI)
 }
 
-
-#' @inheritParams NMI
+#' @export
+#' @name NMI
+#' @title NMI
 #' @param object an Seurat object that contains cluster result and the inherent category
 #'
 #' @param name the colname that contains the genes' inherent category of the cell metadata
@@ -128,8 +129,9 @@ NMI <- function(object,name){
 
 }
 
-
-#' @inheritParams DBI
+#' @export
+#' @name DBI
+#' @title DBI
 #' @param object an Seurat object that contains cluster result
 #'
 #' @param PCnumber the number of PCs to use to calculate the distance of two cells.It is equal to the number of PCs to clustering.
@@ -183,8 +185,9 @@ DBI <- function(object,PCnumber){
   #DBI越小越好
 }
 
-
-#' @inheritParams DVI
+#' @export
+#' @name  DVI
+#' @title DVI
 #' @param object an Seurat object that contains cluster result
 #'
 #' @param PCnumber the number of PCs to use to calculate the distance of two cells.It is equal to the number of PCs to clustering.

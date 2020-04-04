@@ -1,20 +1,36 @@
 
+#'@export
+#'@import Seurat
+#'@name
+#'FindRegionalGenes
+#'@aliases
+#'FindRegionalFeatures
+#'FindRegionalGenes
+#'@title
+#'Find Regional Genes
+#'@description
+#'Identifies features that are regionally distributed.
+#'@usage
+#'obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold)
 #'@param obj an Seurat object
-#'@param dims the dimentions of PCA  used to construct SNN
-#'@param nfeatures the number of features for downstream analysis
-#'@param overlap_stop when the overlap come to this number, iterate will stop.
+#'@param dims Dimensions of reduction to use as input to build neighbor graph
+#'@param nfeatures Number of features to select as top regional features
+#'@param overlap_stop overlap that make the iteration stop
 #'@param snn the neighborhood relationship that is calculated in advance.
 #'@param verbose to choose if show the iteration process plot.
 #'@details the user should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
-#'
-#'
-
+#'@examples
+#'pbmc <- ScaleData(pbmc, features = rownames(pbmc))
+#'pbmc <- RunPCA(pbmc, features = VariableFeatures(obj))
+#'ElbowPlot(obj)
+#'pbmc=FindRegionalGenes(pbmc,dims=1:10,nfeatures=2000)
 
 
 FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold,verbose=TRUE){
 
-
   all.genes=rownames(obj)
+  block.size=1000
+  max.block <- ceiling(x = length(x = all.genes) / block.size)
   cell_num=dim(obj)[2]
   obj=ScaleData(obj,features = all.genes,verbose=FALSE)
   obj_data <- GetAssayData(object = obj,slot="scale.data")  #scale_data
@@ -27,17 +43,29 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
 
     diag(snn) <- 0
 
-    HRG_score=c()
-    for(index in 1:length(all.genes)){
-      data_temp=as.matrix(obj_data[index,])
-      HRG_score[index]=as.numeric(t(data_temp)%*%snn%*%(data_temp))
+
+    if (verbose) {
+      message("calculating gene score")
+      pb <- txtProgressBar(min = 0, max = max.block, style = 3, file = stderr())
     }
+    HRG_score=c()
+    for(i in 1:max.block){
+      my.inds <- ((block.size * (i - 1)):(block.size * i - 1)) + 1
+      my.inds <- my.inds[my.inds <= length(x = all.genes)]
+      for(index in my.inds){
+        data_temp=as.matrix(obj_data[index,])
+        HRG_score[index]=as.numeric(t(data_temp)%*%snn%*%(data_temp))
+      }
+      if(verbose){
+        setTxtProgressBar(pb = pb, value = i)
+      }
+    }
+
     names(HRG_score) <- all.genes
     feature_gene=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
 
 
     overlap=0
-    gp <- ggplot()+geom_hline(yintercept=overlap_stop,  color = "red")+ylim(0,1)+scale_x_continuous(breaks=c(1:20))
     count <- 1
     while(overlap<overlap_stop){
 
@@ -46,18 +74,26 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
       snn <- obj$RNA_snn
       diag(snn) <- 0
 
-      for(index in 1:length(all.genes)){
-        data_temp=as.matrix(obj_data[index,])
-        HRG_score[index]=as.numeric(t(data_temp)%*%snn%*%(data_temp))
+      if (verbose) {
+        message("\ncalculating gene score")
+        pb <- txtProgressBar(min = 0, max = max.block, style = 3, file = stderr())
+      }
+      for(i in 1:max.block){
+        my.inds <- ((block.size * (i - 1)):(block.size * i - 1)) + 1
+        my.inds <- my.inds[my.inds <= length(x = all.genes)]
+        for(index in my.inds){
+          data_temp=as.matrix(obj_data[index,])
+          HRG_score[index]=as.numeric(t(data_temp)%*%snn%*%(data_temp))
+        }
+        if(verbose){
+          setTxtProgressBar(pb = pb, value = i)
+        }
       }
       feature_gene_new=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
       overlap=length(intersect(feature_gene_new,feature_gene))/nfeatures
 
       if(verbose){
-        print(overlap)
-        gp <- gp + geom_point(data = data.frame(time=count,overlap=overlap) , aes(x=time , y=overlap))
-        count=count+1
-        print(gp)
+        message(paste0("\noverlap is ",overlap))
       }
 
       feature_gene=feature_gene_new
@@ -67,17 +103,25 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
     if(size[1]!=cell_num | size[2]!=cell_num){
       stop("the snn should be cellnumberxcellnumber matrix")
     }
-
+    if (verbose) {
+      message("calculating gene score")
+      pb <- txtProgressBar(min = 0, max = max.block, style = 3, file = stderr())
+    }
     HRG_score=c()
-    for(index in 1:length(all.genes)){
-      data_temp=as.matrix(obj_data[index,])
-      HRG_score[index]=as.numeric(t(data_temp)%*%snn%*%(data_temp))
+
+    for(i in 1:max.block){
+      my.inds <- ((block.size * (i - 1)):(block.size * i - 1)) + 1
+      my.inds <- my.inds[my.inds <= length(x = all.genes)]
+      for(index in my.inds){
+        data_temp=as.matrix(obj_data[index,])
+        HRG_score[index]=as.numeric(t(data_temp)%*%snn%*%(data_temp))
+      }
+      if(verbose){
+        setTxtProgressBar(pb = pb, value = i)
+      }
     }
     names(HRG_score) <- all.genes
   }
-
-
-
 
   HRG_rank=rank(-HRG_score)
 
@@ -89,6 +133,20 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
   return(obj)
 
 }
+
+
+
+#'@export
+#'@name RegionalGenes
+#'@title RegionalGenes
+#'@aliases
+#'RegionalGenes
+#'RegionalFeatures
+#'@usage RegionalGenes(obj)
+#'@param obj an seurat object
+#'@description Get and set regional feature information.
+#'
+#'
 
 RegionalGenes <- function(obj){
   gene_metadata=obj@assays$RNA@meta.features
