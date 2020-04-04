@@ -1,10 +1,25 @@
-Package: HighlyRegionalGenes
 Type: Package
-Title: Tools to identify features for downstream analysis.
+Package: HighlyRegionalGenes
+Title: Tools to identify features for downstream
+    analysis.
 Version: 0.1.0
 Author: wyh
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: A toolkit to identify genes that are highly regionally distributed.
+Maintainer: The package maintainer <wuyh_1999@163.com>
+Description: A toolkit to identify genes that are highly
+    regionally distributed.
 License: What license is it under?
+Imports: 
+    ggplot2,
+    Hmisc,
+    irlba,
+    Matrix,
+    reldist,
+    Seurat
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.0.2
+Suggests: knitr, rmarkdown,M3Drop
+VignetteBuilder: knitr
+
+    
+    
