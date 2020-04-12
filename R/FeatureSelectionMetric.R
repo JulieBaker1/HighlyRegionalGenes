@@ -54,7 +54,7 @@ gene_correlation <- function(obj,gene_all_methods){
   methods_names=colnames(gene_all_methods)[1:7]
   clusterExport(cl=cl, varlist=c("scale.data","gene_all_methods"), envir=environment())
 
-  cor_cos[[N]] <- parLapply(cl,1:7,correlation_cal)
+  cor_cos <- parLapply(cl,1:7,correlation_cal)
 
   names(cor_cos)=methods_name
 
