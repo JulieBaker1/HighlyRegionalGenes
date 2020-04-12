@@ -183,6 +183,7 @@ corFS <- function(expr_mat, dir=c("both", "pos", "neg"), fdr=NULL) {
   return(sort(-score))
 }
 ####HRG
+#'@export
 HRGFS <- function(norm){
 
   obj=CreateSeuratObject(counts = norm)#创建对象
@@ -192,10 +193,11 @@ HRGFS <- function(norm){
   obj=ScaleData(obj,features = all.genes)
   obj=RunPCA(object =obj,features=all.genes)
 
-  obj=FindRegionalGenes(obj,nfeatures = length(all.genes))
+  obj=FindRegionalGenes(obj,nfeatures =2000)
 
-  result=RegionalGenes(obj)
-
+  gene_score=obj@assays$RNA@meta.features$HRG.score
+  names(gene_score)=all.genes
+  result=names(sort(gene_score,decreasing = TRUE))
 }
 
 
