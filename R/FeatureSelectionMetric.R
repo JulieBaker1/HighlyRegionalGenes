@@ -44,7 +44,7 @@ correlation_cal <- function(method){
 #'@param obj an seurat object
 #'@param gene_all_methods gene of all methods
 gene_correlation <- function(obj,gene_all_methods){
-  cl <- makeCluster(getOption("cl.cores", 2))
+  cl <- makeCluster(getOption("cl.cores", 7))
   methods_name=colnames(gene_all_methods)[1:7]
   all.genes=rownames(obj)
 
