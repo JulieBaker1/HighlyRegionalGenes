@@ -16,6 +16,8 @@ obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL
 
 \item{overlap_stop}{overlap that make the iteration stop}
 
+\item{max_iteration}{the max iteration times}
+
 \item{snn}{the neighborhood relationship that is calculated in advance.}
 
 \item{verbose}{to choose if show the iteration process plot.}
