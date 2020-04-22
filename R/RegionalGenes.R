@@ -1,5 +1,5 @@
 
-#'@export
+
 #'@import Seurat
 #'@name
 #'FindRegionalGenes
@@ -18,6 +18,7 @@
 #'@param overlap_stop overlap that make the iteration stop
 #'@param snn the neighborhood relationship that is calculated in advance.
 #'@param verbose to choose if show the iteration process plot.
+#'@param max_iteration the max iteration times
 #'@details the user should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
 #'@examples
 #'pbmc <- ScaleData(pbmc, features = rownames(pbmc))
@@ -25,8 +26,8 @@
 #'ElbowPlot(obj)
 #'pbmc=FindRegionalGenes(pbmc,dims=1:10,nfeatures=2000)
 
-
-FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold,verbose=TRUE){
+#'@export
+FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE){
 
   all.genes=rownames(obj)
   block.size=1000
@@ -60,22 +61,25 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
         setTxtProgressBar(pb = pb, value = i)
       }
     }
+    if (verbose) {
+      close(con = pb)
+    }
 
     names(HRG_score) <- all.genes
     feature_gene=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
 
 
     overlap=0
-    count <- 1
-    while(overlap<overlap_stop){
-
+    count <- 0
+    while((overlap<overlap_stop) & (count<max_iteration)){
+      count=count+1
       obj=RunPCA(obj,features = feature_gene,verbose=FALSE)
       obj <- FindNeighbors(obj, dims =dims,verbose=FALSE)
       snn <- obj$RNA_snn
       diag(snn) <- 0
 
       if (verbose) {
-        message("\ncalculating gene score")
+        message("calculating gene score")
         pb <- txtProgressBar(min = 0, max = max.block, style = 3, file = stderr())
       }
       for(i in 1:max.block){
@@ -89,11 +93,14 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
           setTxtProgressBar(pb = pb, value = i)
         }
       }
+      if (verbose) {
+        close(con = pb)
+      }
       feature_gene_new=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
       overlap=length(intersect(feature_gene_new,feature_gene))/nfeatures
 
       if(verbose){
-        message(paste0("\noverlap is ",overlap))
+        message(paste0("overlap is ",overlap))
       }
 
       feature_gene=feature_gene_new
@@ -119,6 +126,9 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn
       if(verbose){
         setTxtProgressBar(pb = pb, value = i)
       }
+    }
+    if (verbose) {
+      close(con = pb)
     }
     names(HRG_score) <- all.genes
   }
