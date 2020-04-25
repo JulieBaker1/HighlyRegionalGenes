@@ -21,7 +21,7 @@ System Requirements
 -   Seurat version: &gt;3.1.4
 
 If you would like to run the codes that compare HRG with other feature
-selection methods, M3drop and parallel packages need to be installes. It
+selection methods, M3drop and parallel packages need to be installed. It
 is necessary to notify you that those codes will cost much time.
 
 Installation
