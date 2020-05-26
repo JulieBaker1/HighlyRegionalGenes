@@ -2,7 +2,6 @@
 
 export(ARI)
 export(Consensus_FS_new)
-export(Consensus_FS_new_norm)
 export(DBI)
 export(DVI)
 export(FindRegionalGenes)

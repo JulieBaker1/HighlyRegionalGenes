@@ -1,6 +1,6 @@
 Type: Package
 Package: HighlyRegionalGenes
-Title: Tools to identify features for downstream
+Title: Tools to identify regional distributed features for downstream
     analysis.
 Version: 0.1.0
 Author: wyh
