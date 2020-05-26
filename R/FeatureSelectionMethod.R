@@ -14,9 +14,7 @@ irlbaPcaFS <- function(expr_mat, pcs=c(2,3)) {
   #require("Matrix")
   norm <- expr_mat
   nz_genes <- which(Matrix::rowSums(norm) != 0)
-  norm[nz_genes,] <- log(norm[nz_genes,] + 1)/log(2)
   # Create sparse Matrix
-
   gene_names <- rownames(norm);
   norm <- Matrix::Matrix(norm, sparse=TRUE)
   rownames(norm) <- gene_names
@@ -122,7 +120,6 @@ giniFS <- function(expr_mat, suppress.plot=TRUE) {
   #require("reldist")
   ginis <- apply(expr_mat, 1, reldist::gini)
   max_expr <- apply(expr_mat, 1, max)
-  max_expr <- log(max_expr+1)/log(2)
   fit = loess(ginis~max_expr)
   outliers = abs(fit$residuals)
   outliers = outliers > quantile(outliers, probs=0.75)
@@ -247,14 +244,14 @@ Consensus_FS_new <- function(counts, norm=NA, is.spike=rep(FALSE, times=nrow(cou
   # DANB
   compute_time[[1]]=system.time(
     {
-      fit <- NBumiFitModel(counts)
-      DANB <- NBumiFeatureSelectionCombinedDrop(fit)
+      fit <- M3Drop::NBumiFitModel(counts)
+      DANB <- M3Drop::NBumiFeatureSelectionCombinedDrop(fit)
     }
   )
   compute_time[[2]]=system.time(
     {
-      fit2 <- NBumiFitModel(counts)
-      DANB_var <- NBumiFeatureSelectionHighVar(fit2)
+      fit2 <- M3Drop::NBumiFitModel(counts)
+      DANB_var <- M3Drop::NBumiFeatureSelectionHighVar(fit2)
     }
   )
 
@@ -266,7 +263,7 @@ Consensus_FS_new <- function(counts, norm=NA, is.spike=rep(FALSE, times=nrow(cou
   # M3Drop
   compute_time[[3]]=system.time(
     {
-      m3drop <- M3DropFeatureSelection(norm, mt_method="fdr", mt_threshold=2, suppress.plot=TRUE)
+      m3drop <- M3Drop::M3DropFeatureSelection(expr_mat = (2^(norm)-1), mt_method="fdr", mt_threshold=2, suppress.plot=TRUE)
     }
   )
 
