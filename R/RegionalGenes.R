@@ -1,5 +1,4 @@
 
-
 #'@import Seurat
 #'@name
 #'FindRegionalGenes
@@ -11,7 +10,7 @@
 #'@description
 #'Identifies features that are regionally distributed.
 #'@usage
-#'obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold)
+#'obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,is.save=FALSE,dir=getwd())
 #'@param obj an Seurat object
 #'@param dims Dimensions of reduction to use as input to build neighbor graph
 #'@param nfeatures Number of features to select as top regional features
@@ -19,6 +18,8 @@
 #'@param snn the neighborhood relationship that is calculated in advance.
 #'@param verbose to choose if show the iteration process plot.
 #'@param max_iteration the max iteration times
+#'@param is.save the max iteration times
+#'@param dir the save directory
 #'@details the user should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
 #'@examples
 #'pbmc <- ScaleData(pbmc, features = rownames(pbmc))
@@ -27,8 +28,10 @@
 #'pbmc=FindRegionalGenes(pbmc,dims=1:10,nfeatures=2000)
 
 #'@export
-FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE){
-
+FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE,is.save=FALSE,dir){
+  if(is.save==TRUE){
+    gene_all=list()
+  }
   all.genes=rownames(obj)
   block.size=1000
   max.block <- ceiling(x = length(x = all.genes) / block.size)
@@ -67,7 +70,7 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
 
     names(HRG_score) <- all.genes
     feature_gene=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
-
+    gene_all[[1]]=feature_gene
 
     overlap=0
     count <- 0
@@ -104,6 +107,7 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
       }
 
       feature_gene=feature_gene_new
+      gene_all[[count]]=feature_gene
     }
   } else{
     size=dim(snn)
@@ -140,7 +144,12 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_score,col.name="HRG.score")
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_rank,col.name="HRG.rank")
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_regional,col.name="HRG.regional")
-  return(obj)
+  print(getwd())
+  if(is.save==TRUE){
+    names(gene_all)=c(1:length(gene_all))
+    saveRDS(as.data.frame(gene_all),paste0(dir,"/gene_iteration.rds"))
+  }
+    return(obj)
 
 }
 
