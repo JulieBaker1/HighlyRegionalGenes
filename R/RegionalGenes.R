@@ -28,7 +28,7 @@
 #'pbmc=FindRegionalGenes(pbmc,dims=1:10,nfeatures=2000)
 
 #'@export
-FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE,is.save=FALSE,dir){
+FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE,is.save=FALSE,dir = ""){
   if(is.save==TRUE){
     gene_all=list()
   }
