@@ -5,7 +5,7 @@
 \alias{FindRegionalFeatures}
 \title{Find Regional Genes}
 \usage{
-obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL,do_test,p_threshold)
+obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,is.save=FALSE,dir=getwd())
 }
 \arguments{
 \item{obj}{an Seurat object}
@@ -21,6 +21,10 @@ obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,snn=NULL
 \item{snn}{the neighborhood relationship that is calculated in advance.}
 
 \item{verbose}{to choose if show the iteration process plot.}
+
+\item{is.save}{the max iteration times}
+
+\item{dir}{the save directory}
 }
 \description{
 Identifies features that are regionally distributed.
