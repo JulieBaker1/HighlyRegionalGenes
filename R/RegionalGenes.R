@@ -29,7 +29,7 @@
 
 #'@export
 FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE,is.save=FALSE,dir = ""){
-  if(is.save==TRUE){
+  if(is.save){
     gene_all=list()
   }
   all.genes=rownames(obj)
@@ -70,7 +70,10 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
 
     names(HRG_score) <- all.genes
     feature_gene=names(sort(HRG_score,decreasing = TRUE))[1:nfeatures]
-    gene_all[[1]]=feature_gene
+    if(is.save){
+      gene_all[[1]]=feature_gene
+    }
+
 
     overlap=0
     count <- 0
@@ -107,7 +110,9 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
       }
 
       feature_gene=feature_gene_new
-      gene_all[[count]]=feature_gene
+      if(is.save){
+        gene_all[[count]]=feature_gene
+      }
     }
   } else{
     size=dim(snn)
