@@ -149,7 +149,6 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_score,col.name="HRG.score")
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_rank,col.name="HRG.rank")
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_regional,col.name="HRG.regional")
-  print(getwd())
   if(is.save==TRUE){
     names(gene_all)=c(1:length(gene_all))
     saveRDS(as.data.frame(gene_all),paste0(dir,"/gene_iteration.rds"))
@@ -179,5 +178,7 @@ RegionalGenes <- function(obj){
   names(rank)=rownames(gene_metadata)
   return(names(sort(rank))[1:features_num])
 }
+
+
 
 
