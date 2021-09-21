@@ -12,7 +12,7 @@ method mainly contains three steps:
 
 We use iteration to make the SNN more precise.Below is the workflow.
 
-![workflow.png](https://github.com/JulieBaker1/HighlyRegionalGenes/blob/master/images/61e0650f339ebd15ded6f3ea569ef67.png)
+![workflow.png](https://github.com/JulieBaker1/HighlyRegionalGenes/blob/master/images/figure1.png)
 
 System Requirements
 -------------------
