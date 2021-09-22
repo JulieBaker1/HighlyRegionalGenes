@@ -11,16 +11,17 @@
 #'Identifies features that are regionally distributed.
 #'@usage
 #'obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,is.save=FALSE,dir=getwd())
-#'@param obj an Seurat object
+#'@param obj An Seurat object
 #'@param dims Dimensions of reduction to use as input to build neighbor graph
+#'@param neigh_num Number of neighbors
 #'@param nfeatures Number of features to select as top regional features
-#'@param overlap_stop overlap that make the iteration stop
-#'@param snn the neighborhood relationship that is calculated in advance.
-#'@param verbose to choose if show the iteration process plot.
-#'@param max_iteration the max iteration times
-#'@param is.save whether to save intermediate results
-#'@param dir the save directory
-#'@details the user should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
+#'@param overlap_stop Overlap that make the iteration stop
+#'@param snn The neighborhood relationship that is calculated in advance.
+#'@param verbose To choose if show the iteration process plot.
+#'@param max_iteration The max iteration times
+#'@param is.save Whether to save intermediate results
+#'@param dir The save directory
+#'@details Users should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
 #'@examples
 #'pbmc <- ScaleData(pbmc, features = rownames(pbmc))
 #'pbmc <- RunPCA(pbmc, features = VariableFeatures(obj))
@@ -28,7 +29,7 @@
 #'pbmc=FindRegionalGenes(pbmc,dims=1:10,nfeatures=2000)
 
 #'@export
-FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE,is.save=FALSE,dir = ""){
+FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,verbose=TRUE,neigh_num = 20,is.save=FALSE,dir = ""){
   if(is.save){
     gene_all=list()
   }
@@ -41,7 +42,7 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
 
   if(is.null(snn)){
 
-    obj <- FindNeighbors(obj, dims =dims,verbose=FALSE)
+    obj <- FindNeighbors(obj, dims =dims,k.param = neigh_num,verbose=FALSE)
 
     snn <- obj$RNA_snn
 
@@ -80,7 +81,7 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
     while((overlap<overlap_stop) & (count<max_iteration)){
       count=count+1
       obj=RunPCA(obj,features = feature_gene,verbose=FALSE)
-      obj <- FindNeighbors(obj, dims =dims,verbose=FALSE)
+      obj <- FindNeighbors(obj, dims =dims,k.param = neigh_num,verbose=FALSE)
       snn <- obj$RNA_snn
       diag(snn) <- 0
 
@@ -144,11 +145,8 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
 
   HRG_rank=rank(-HRG_score)
 
-  HRG_regional=(HRG_rank<=nfeatures)
-
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_score,col.name="HRG.score")
   obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_rank,col.name="HRG.rank")
-  obj[["RNA"]]=AddMetaData(obj[["RNA"]],HRG_regional,col.name="HRG.regional")
   if(is.save==TRUE){
     names(gene_all)=c(1:length(gene_all))
     saveRDS(as.data.frame(gene_all),paste0(dir,"/gene_iteration.rds"))
@@ -156,6 +154,32 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
     return(obj)
 
 }
+
+#'@import KneeArrower
+#'@export
+#'@name HRG_elbowplot
+#'@title HRG_elbowplot
+#'@aliases
+#'HRG_elbowplot
+#'@usage HRG_elbowplot(obj)
+#'@param obj an Seurat object
+#'@param method the method to define the knee point. Value can be "first" for first derivative cutoff or "curvature" for maximum curvature cutoff.
+#'@description Find regional gene number
+#'
+
+HRG_elbowplot <- function(obj,method = "curvature"){
+  score = obj[["RNA"]][["HRG.score"]]
+  score = as.matrix(score)[,1]
+  # names(score) = rownames(pbmc[["RNA"]][["HRG.score"]])
+  score = sort(score,decreasing = TRUE)
+  elbow_point  = KneeArrower::findCutoff(1:length(score),score,method)
+  gene_num = floor(elbow_point$x)
+  plot(1:length(score),score)
+  points(gene_num,score[gene_num],col="red", pch = 19,lwd = 4)
+  return(gene_num)
+}
+
+
 
 
 
@@ -167,18 +191,15 @@ FindRegionalGenes <- function(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max
 #'RegionalFeatures
 #'@usage RegionalGenes(obj)
 #'@param obj an seurat object
+#'@param nfeatures Number of features to select as output regional features
 #'@description Get and set regional feature information.
 #'
-#'
 
-RegionalGenes <- function(obj){
+RegionalGenes <- function(obj,nfeatures = 2000){
   gene_metadata=obj@assays$RNA@meta.features
-  features_num=sum(gene_metadata$HRG.regional)
-  rank=gene_metadata$HRG.rank
-  names(rank)=rownames(gene_metadata)
-  return(names(sort(rank))[1:features_num])
+  HRG_rank = gene_metadata["HRG.rank"]
+  HRG_rank = as.matrix(HRG_rank)[,1]
+  return(names(sort(HRG_rank))[1:nfeatures])
 }
-
-
 
 
