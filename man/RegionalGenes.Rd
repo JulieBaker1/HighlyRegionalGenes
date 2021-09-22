@@ -9,6 +9,8 @@ RegionalGenes(obj)
 }
 \arguments{
 \item{obj}{an seurat object}
+
+\item{nfeatures}{Number of features to select as output regional features}
 }
 \description{
 Get and set regional feature information.

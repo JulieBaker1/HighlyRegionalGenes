@@ -8,29 +8,31 @@
 obj <- FindRegionalGenes(obj,dims=1:10,nfeatures=2000,overlap_stop=0.75,max_iteration=10,snn=NULL,do_test,p_threshold,is.save=FALSE,dir=getwd())
 }
 \arguments{
-\item{obj}{an Seurat object}
+\item{obj}{An Seurat object}
 
 \item{dims}{Dimensions of reduction to use as input to build neighbor graph}
 
 \item{nfeatures}{Number of features to select as top regional features}
 
-\item{overlap_stop}{overlap that make the iteration stop}
+\item{overlap_stop}{Overlap that make the iteration stop}
 
-\item{max_iteration}{the max iteration times}
+\item{max_iteration}{The max iteration times}
 
-\item{snn}{the neighborhood relationship that is calculated in advance.}
+\item{snn}{The neighborhood relationship that is calculated in advance.}
 
-\item{verbose}{to choose if show the iteration process plot.}
+\item{verbose}{To choose if show the iteration process plot.}
 
-\item{is.save}{whether to save intermediate results}
+\item{neigh_num}{Number of neighbors}
 
-\item{dir}{the save directory}
+\item{is.save}{Whether to save intermediate results}
+
+\item{dir}{The save directory}
 }
 \description{
 Identifies features that are regionally distributed.
 }
 \details{
-the user should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
+Users should use all the features to run PCA and choose the dimensions used to for this function. Or at least run PCA so that the function can get the SNN.
 }
 \examples{
 pbmc <- ScaleData(pbmc, features = rownames(pbmc))
