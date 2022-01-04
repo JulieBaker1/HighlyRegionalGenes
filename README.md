@@ -33,7 +33,7 @@ the package can be installed directly from the github.
     library(devtools)
     install_github("JulieBaker1/HighlyRegionalGenes")
 
-usage
+Usage
 -----
 
 The vignette of HighlyRegionalGenes can be found in the project
