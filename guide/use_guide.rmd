@@ -1,15 +1,21 @@
----
-title: "HighlyRegionalGenes - Guided Tutorial"
-output: html_document
----
 
-The code below can be obtained from [HighlyRegionalGenes](https://github.com/JulieBaker1/HighlyRegionalGenes).The method can be recognize as a alternative for the **HighlyVarationalgene()** feature-selection method in Seurat.
+# HighlyRegionalGenes - Guided Tutorial
 
 
-```{r global_options, include=FALSE}
-knitr::opts_knit$set(warning=FALSE,root.dir = 'D:/postgraduate/feature-selection/data/output',verbose = FALSE)
-```
-## Installation
+# Introduction
+Select genes that have biological significance is useful for downstream analysis.Here we bring up a feature selection method called `HighlyRegionalGenes`which identify genes with regional patterns.The method mainly contains three steps:
+  
+  * construct SNN
+  * calculate score and rank genes
+  * select the regional distributed genes
+  
+We use iteration to make the SNN more precise.Below is the workflow.
+
+![figure1.png](https://github.com/JulieBaker1/HighlyRegionalGenes/blob/master/images/figure1.png)
+
+The code below can be obtained from [HighlyRegionalGenes](https://github.com/JulieBaker1/HighlyRegionalGenes).The method can be recognize as a alternative for the `HighlyVarationalgene()` feature-selection method in Seurat.
+
+# Installation
 the package can be installed directly from the github.
 ```{r eval=FALSE}
 install.packages("devtools")
@@ -17,44 +23,65 @@ library(devtools)
 install_github("JulieBaker1/HighlyRegionalGenes")
 ```
 
-## step1:Load library
+# Quick start
+Here, we provide an example data of [pbmc](http://lifeome.net/software/hrg/pbmc.rds) from 10X Genomics. Users can download it and run following scripts to understand the workflow of HighlyRegionalGenes.
+
+## Step1:Load library
 ```{r warning=FALSE}
 library(Seurat)
 library(HighlyRegionalGenes)
 ```
 
-## step2:Run pca
-Our idea is based on the cell neighborhood relationship. If an neighborhood relationship can't be obtained in advance, we should first run PCA used to construct neighborhood relationship(SNN in our method), otherwise, this step can be ignored.Notably, besides all the genes to run PCA, the genes find by Seurat's HighlyVariablegenes() function or genes you think are benifit to construct neighborhood relationship is also recommended.
-```{r warning=FALSE,verbose=FALSE}
+## Step2:Run pca
+Our idea is based on the cell neighborhood relationship. If an neighborhood relationship can't be obtained in advance, we should first run PCA used to construct neighborhood relationship(SNN in our method), otherwise, this step can be ignored.Notably, besides all the genes to run PCA, the genes find by Seurat's HighlyVariablegenes() function or genes you think are beneficial to construct neighborhood relationship are also recommended.
+```{r warning=FALSE,verbose=FALSE,eval=FALSE}
+# load the data
 pbmc=readRDS("pbmc.rds")
+# provide the features that used to run PCA.
 all.genes=rownames(pbmc)
 pbmc=ScaleData(pbmc,features=all.genes,verbose = FALSE)
 pbmc=RunPCA(pbmc,features=all.genes,verbose = FALSE)
+# get the dimensions used to construct SNN.
 ElbowPlot(pbmc)
 ```
+![elbow.png](https://github.com/JulieBaker1/HighlyRegionalGenes/blob/master/images/elbowplot.png)
 
-## step3: Identification of highly regional features
+## Step3: Identify highly regional features
 
-To confirm our neighborhood relationship is accurate, we use newly-find features to construct SNN again and again until the overlap between the newly-find features and the last features comes to overlap_stop, 0.75 by default. If you pursue efficiency and don't want the iteration, just set overlap_stop 0. You can find specific details [here]().
+To ensure our neighborhood relationship is accurate, we use newly found features to construct SNN again and again until the overlap between the newly found features and the previous features comes to overlap_stop, 0.75 by default. If you pursue efficiency and don't want the iteration, just set overlap_stop 0.
 
 the parameter that user can define.
 
-* an Seurat object
+* obj:an Seurat object
 * dims:the dimentions of PCA  used to construct SNN.(10 by default)
 * nfeatures:the number of features for downstream analysis.(2000 by default)
 * overlap_stop:when the overlap come to this number, iterate will stop.(0.75 by default)
 * snn:the neighborhood relationship that is calculated in advance.
+* max_iteration:the max iteration times
+* neigh_num:number of neighbors
+* is.save:whether to save intermediate results
+* dir:the save directory
 
 example:
-```{r}
-pbmc=FindRegionalGenes(pbmc,dims = 1:10,nfeatures = 2000,overlap_stop = 0.99)
-# Identify the 10 most highly regional genes
-top10 <- head(VariableFeatures(pbmc), 10)
-# the featureplot of the 2 most highly regional genes
-FeaturePlot(pbmc,head(VariableFeatures(pbmc), 2))
+```{r eval=FALSE}
+    # find regional distributed genes
+    pbmc=FindRegionalGenes(pbmc,dims = 1:10,nfeatures = 2000,overlap_stop = 0.95)
+    # the featureplot of the 2 most highly regional genes
+    FeaturePlot(pbmc,head(RegionalGenes(pbmc), 2))
 ```
 
+![featureplot.png](https://github.com/JulieBaker1/HighlyRegionalGenes/blob/master/images/featureplot.png)
+ 
+## Step4:Choose gene number
 
+We can set gene number manually or detect automatically by finding knee point.
+```{r eval=FALSE}
+   # detect automatically by finding knee point. If you set gene number manually, you can skip  this step.
+   gene_num = HRG_elbowplot(pbmc)
+   #output
+   reional_gene = RegionalGenes(pbmc,nfeatures = gene_num)
+```
+![score_elbow_plot.png](https://github.com/JulieBaker1/HighlyRegionalGenes/blob/master/images/score_elbow_plot.png)
 
 
 
